@@ -1,18 +1,21 @@
 import { createSlice, createAsyncThunk, createSelector } from "@reduxjs/toolkit";
 import type { RootState } from "./store";
 import { StatusOfRequestEnum } from "../types/StatusOfRequestEnum";
-import { doc, getDocs, addDoc, deleteDoc } from "firebase/firestore";
+import { doc, getDocs, addDoc, deleteDoc, updateDoc } from "firebase/firestore";
 import { todos } from "../../config/firebase";
 import { db } from "../../config/firebase";
 
 export interface Todo {
   title: string;
   isDone: boolean;
-  id?: string;
+  id: string;
+  createdDate: number;
+  dueDate: string;
+  finishedDate: string | null;
 }
 
 interface TodosSlice {
-  fetchTodos: {
+  fetchTodoList: {
     status: StatusOfRequestEnum;
     error: string | null;
     data: Todo[];
@@ -20,7 +23,7 @@ interface TodosSlice {
 }
 
 const initialState: TodosSlice = {
-  fetchTodos: {
+  fetchTodoList: {
     status: StatusOfRequestEnum.IDLE,
     error: null,
     data: [],
@@ -33,43 +36,50 @@ const todosSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(fetchTodos.pending, (state) => {
-        state.fetchTodos.status = StatusOfRequestEnum.LOADING;
-        state.fetchTodos.error = null;
-        state.fetchTodos.data = [];
+      .addCase(fetchTodoList.pending, (state) => {
+        state.fetchTodoList.status = StatusOfRequestEnum.LOADING;
+        state.fetchTodoList.error = null;
       })
-      .addCase(fetchTodos.fulfilled, (state, action) => {
-        state.fetchTodos.status = StatusOfRequestEnum.SUCCESS;
-        state.fetchTodos.error = null;
-        state.fetchTodos.data = action.payload;
+      .addCase(fetchTodoList.fulfilled, (state, action) => {
+        state.fetchTodoList.status = StatusOfRequestEnum.SUCCESS;
+        state.fetchTodoList.error = null;
+        state.fetchTodoList.data = action.payload;
       })
-      .addCase(fetchTodos.rejected, (state, action) => {
-        state.fetchTodos.error = action.payload || "unknown error";
-        state.fetchTodos.status = StatusOfRequestEnum.ERROR;
-        state.fetchTodos.data = [];
+      .addCase(fetchTodoList.rejected, (state, action) => {
+        state.fetchTodoList.error = action.payload || "unknown error";
+        state.fetchTodoList.status = StatusOfRequestEnum.ERROR;
+        state.fetchTodoList.data = [];
       });
   },
 });
 
-export const fetchTodos = createAsyncThunk<Todo[], undefined, { rejectValue: string }>(
-  "todos/fetchTodos",
+export const fetchTodoList = createAsyncThunk<Todo[], undefined, { rejectValue: string }>(
+  "todos/fetchTodoList",
   async (_, { rejectWithValue }) => {
     try {
       const data = await getDocs(todos);
       const filteredData = data.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
-      console.log(filteredData);
-      return filteredData;
+      const sortedData = filteredData.sort((a, b) => a.createdDate - b.createdDate);
+      return sortedData;
     } catch (error) {
       return rejectWithValue("unknown error");
     }
   }
 );
 
-export const addTodo = createAsyncThunk<void, string, { rejectValue: string }>(
+export const addTodo = createAsyncThunk<void, { title: string; dueDate: string }, { rejectValue: string }>(
   "todos/addTodo",
-  async (title, { rejectWithValue }) => {
+  async (item, { rejectWithValue }) => {
     try {
-      await addDoc(todos, { title: title, isDone: false });
+      const docItem = doc(todos);
+      await addDoc(todos, {
+        title: item.title,
+        isDone: false,
+        id: docItem.id,
+        createdDate: Date.now(),
+        dueDate: item.dueDate,
+        finishedDate: null,
+      });
     } catch (error) {
       return rejectWithValue("unknown error");
     }
@@ -88,6 +98,31 @@ export const deleteTodo = createAsyncThunk<void, string, { rejectValue: string }
   }
 );
 
+export const updateStatus = createAsyncThunk<void, Todo, { rejectValue: string }>(
+  "todos/updateStatus",
+  async (item, { rejectWithValue }) => {
+    try {
+      const itemDoc = doc(db, "todos", item.id);
+      await updateDoc(itemDoc, { isDone: !item.isDone, finishedDate: Date.now() });
+    } catch (error) {
+      return rejectWithValue("unknown error");
+    }
+  }
+);
+
+export const updateDueDate = createAsyncThunk<
+  void,
+  { id: string; newDueDate: string },
+  { rejectValue: string }
+>("todos/updateDueDate", async (id, newDueDate, { rejectWithValue }) => {
+  try {
+    const itemDoc = doc(db, "todos", id);
+    await updateDoc(itemDoc, { dueDate: newDueDate });
+  } catch (error) {
+    return rejectWithValue("unknown error");
+  }
+});
+
 const selfSelector = (state: RootState) => state.todos;
-export const fetchTodosSelector = createSelector(selfSelector, (state) => state.fetchTodos);
+export const fetchTodoListSelector = createSelector(selfSelector, (state) => state.fetchTodoList);
 export default todosSlice.reducer;
