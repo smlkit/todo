@@ -17,7 +17,7 @@ const TodoPage = () => {
   }, []);
 
   const onAdd = () => {
-    if (newTodoTitle && newTodoDate) {
+    if (newTodoTitle) {
       const newTodo = { title: newTodoTitle, dueDate: newTodoDate };
       dispatch(addTodo(newTodo));
       dispatch(fetchTodoList());
@@ -71,7 +71,6 @@ const TodoPage = () => {
             isLoading={status === StatusOfRequestEnum.LOADING ? true : false}
             width="100px"
             onClick={onAdd}
-            colorScheme="teal"
             size="sm"
           >
             Add

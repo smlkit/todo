@@ -6,6 +6,8 @@ import { fetchOneTodo, fetchOneTodoSelector, patchTodo } from "../../core/store/
 import { Box, Input, Text, Button } from "@chakra-ui/react";
 import { StatusOfRequestEnum } from "../../core/types/StatusOfRequestEnum";
 import moment from "moment";
+import { Wrapper } from "../../styles/styledComponents/Wrapper";
+import { Container } from "../../styles/styledComponents/Container";
 
 const TodoPage = () => {
   const navigate = useNavigate();
@@ -23,7 +25,7 @@ const TodoPage = () => {
   }, []);
 
   useEffect(() => {
-    if (todo && status === StatusOfRequestEnum.SUCCESS) {
+    if (todo && todo.dueDate && status === StatusOfRequestEnum.SUCCESS) {
       setNewTodoDate(todo.dueDate);
       setNewTodoTitle(todo.title);
     }
@@ -37,24 +39,37 @@ const TodoPage = () => {
   };
 
   return (
-    <Box>
-      <Text as="b">Change todo</Text>
-      {todo && (
-        <>
-          <Input value={newTodoTitle} onChange={(e) => setNewTodoTitle(e.target.value)} />
-          <Input
-            placeholder="Select Date and Time"
-            size="sm"
-            type="datetime-local"
-            value={moment(newTodoDate).format("YYYY-MM-DDThh:mm")}
-            onChange={(e) => setNewTodoDate(e.target.value)}
-          />
-          <Button width="100px" onClick={onUpdate} colorScheme="teal" size="sm">
-            Update
-          </Button>
-        </>
-      )}
-    </Box>
+    <Wrapper>
+      <Box
+        p="40px"
+        width="500px"
+        borderWidth="1px"
+        borderRadius="lg"
+        display="flex"
+        alignItems="center"
+        flexDirection="column"
+      >
+        <Text as="b" pb={5} fontSize="xl">
+          Change todo details
+        </Text>
+        {todo && (
+          <>
+            <Input value={newTodoTitle} onChange={(e) => setNewTodoTitle(e.target.value)} mb={5} />
+            <Input
+              placeholder="Select Date and Time"
+              size="md"
+              type="datetime-local"
+              value={moment(newTodoDate).format("YYYY-MM-DDThh:mm")}
+              onChange={(e) => setNewTodoDate(e.target.value)}
+              mb={5}
+            />
+            <Button width="100px" onClick={onUpdate} colorScheme="teal" size="md">
+              Update
+            </Button>
+          </>
+        )}
+      </Box>
+    </Wrapper>
   );
 };
 

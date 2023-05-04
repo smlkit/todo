@@ -10,7 +10,7 @@ export interface Todo {
   isDone: boolean;
   id: string;
   createdDate: number;
-  dueDate: string;
+  dueDate: string | null;
   finishedDate: string | null;
 }
 
@@ -144,7 +144,6 @@ export const patchTodo = createAsyncThunk<void, PatchTodoArgs, { rejectValue: st
     try {
       const itemDoc = doc(db, "todos", item.id);
       await updateDoc(itemDoc, item);
-      console.log("patch");
     } catch (error) {
       console.log(error);
       return rejectWithValue("unknown error");
@@ -155,5 +154,17 @@ export const patchTodo = createAsyncThunk<void, PatchTodoArgs, { rejectValue: st
 const selfSelector = (state: RootState) => state.todos;
 export const fetchTodoListSelector = createSelector(selfSelector, (state) => state.fetchTodoList);
 export const fetchOneTodoSelector = createSelector(selfSelector, (state) => state.fetchOneTodo);
+export const filterTodosSelector = createSelector(fetchTodoListSelector, ({ data, ...other }) => {
+  const withDate: Todo[] = [];
+  const withoutDate: Todo[] = [];
+  data.forEach((el) => {
+    if (el.dueDate) {
+      withDate.push(el);
+    } else {
+      withoutDate.push(el);
+    }
+  });
+  return { ...other, withDate, withoutDate };
+});
 
 export default todosSlice.reducer;

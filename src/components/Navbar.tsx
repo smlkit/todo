@@ -1,5 +1,7 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import { Box, Link } from "@chakra-ui/react";
+import { Wrapper } from "../styles/styledComponents/Wrapper";
+import { Container } from "../styles/styledComponents/Container";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -14,9 +16,14 @@ const Navbar = () => {
         flexDirection="row"
         gap="30px"
         alignItems="center"
+        justifyContent="center"
       >
-        <Link onClick={() => navigate("/")}>Main</Link>
-        <Link onClick={() => navigate("/calendar")}>Calendar</Link>
+        <Container>
+          <Link onClick={() => navigate("/")} pr={10}>
+            Main page
+          </Link>
+          <Link onClick={() => navigate("/calendar")}>Calendar</Link>
+        </Container>
       </Box>
       <Outlet />
     </>
