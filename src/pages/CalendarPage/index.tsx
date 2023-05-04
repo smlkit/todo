@@ -1,47 +1,56 @@
 import { useEffect } from "react";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { useThunkDispatch } from "../../core/store/store";
+import { fetchTodoList, fetchTodoListSelector, patchTodo } from "../../core/store/todoSlice";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
-import { fetchTodoList, fetchTodoListSelector } from "../../core/store/todoSlice";
-import { useThunkDispatch } from "../../core/store/store";
-import { CustomContentGenerator, EventContentArg } from "@fullcalendar/core/index.js";
+import {
+  CustomContentGenerator,
+  EventContentArg,
+  EventDropArg,
+  EventSourceInput,
+} from "@fullcalendar/core/index.js";
 import interactionPlugin, { Draggable } from "@fullcalendar/interaction";
 import { Text } from "@chakra-ui/react";
-import { updateDueDate } from "../../core/store/todoSlice";
 
 const renderFunc: CustomContentGenerator<EventContentArg> = function (eventInfo) {
   return (
-    <div>
-      <Text>{eventInfo.timeText}</Text>
-      <Text as="b">{eventInfo.event.title}</Text>
+    <div style={{ width: "100%", backgroundColor: eventInfo.backgroundColor }}>
+      <Text color="white">{eventInfo.timeText}</Text>
+      <Text as="b" color="white" fontSize="md">
+        {eventInfo.event.title}
+      </Text>
     </div>
   );
 };
 
 const CalendarPage = () => {
+  const navigate = useNavigate();
   const dispatch = useThunkDispatch();
   const { data: todos, status, error } = useSelector(fetchTodoListSelector);
 
-  const events = todos.map((el) => {
+  const events: EventSourceInput = todos.map((el) => {
     return {
+      editable: !el.isDone,
       title: el.title,
       start: el.dueDate,
       id: el.id,
+      backgroundColor: el.isDone ? "red" : "teal",
     };
   });
-  console.log(events);
 
   useEffect(() => {
     dispatch(fetchTodoList());
   }, []);
 
-  const onDrag = (info) => {
-    console.log(info.event.title);
+  const onDrag = (info: EventDropArg) => {
     const event = {
       id: info.event.id,
-      time: info.event.timeStr,
+      dueDate: info.event.startStr,
     };
-    dispatch(updateDueDate({ event }));
+
+    dispatch(patchTodo(event));
   };
 
   return (
@@ -54,7 +63,9 @@ const CalendarPage = () => {
         eventContent={renderFunc}
         editable={true}
         droppable={true}
-        eventDrop={(info) => onDrag(info)}
+        eventDrop={onDrag}
+        eventColor="red"
+        eventClick={(info) => navigate(`/${info.event.id}`)}
       />
     </div>
   );

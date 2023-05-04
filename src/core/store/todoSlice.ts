@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk, createSelector } from "@reduxjs/toolkit";
 import type { RootState } from "./store";
 import { StatusOfRequestEnum } from "../types/StatusOfRequestEnum";
-import { doc, getDocs, addDoc, deleteDoc, updateDoc } from "firebase/firestore";
+import { doc, getDocs, getDoc, addDoc, deleteDoc, updateDoc } from "firebase/firestore";
 import { todos } from "../../config/firebase";
 import { db } from "../../config/firebase";
 
@@ -20,6 +20,11 @@ interface TodosSlice {
     error: string | null;
     data: Todo[];
   };
+  fetchOneTodo: {
+    status: StatusOfRequestEnum;
+    error: string | null;
+    data: Todo | null;
+  };
 }
 
 const initialState: TodosSlice = {
@@ -27,6 +32,11 @@ const initialState: TodosSlice = {
     status: StatusOfRequestEnum.IDLE,
     error: null,
     data: [],
+  },
+  fetchOneTodo: {
+    status: StatusOfRequestEnum.IDLE,
+    error: null,
+    data: null,
   },
 };
 
@@ -49,6 +59,20 @@ const todosSlice = createSlice({
         state.fetchTodoList.error = action.payload || "unknown error";
         state.fetchTodoList.status = StatusOfRequestEnum.ERROR;
         state.fetchTodoList.data = [];
+      })
+      .addCase(fetchOneTodo.pending, (state) => {
+        state.fetchOneTodo.status = StatusOfRequestEnum.LOADING;
+        state.fetchOneTodo.error = null;
+      })
+      .addCase(fetchOneTodo.fulfilled, (state, action) => {
+        state.fetchOneTodo.status = StatusOfRequestEnum.SUCCESS;
+        state.fetchOneTodo.error = null;
+        state.fetchOneTodo.data = action.payload;
+      })
+      .addCase(fetchOneTodo.rejected, (state, action) => {
+        state.fetchOneTodo.error = "unknown error";
+        state.fetchOneTodo.status = StatusOfRequestEnum.ERROR;
+        state.fetchOneTodo.data = null;
       });
   },
 });
@@ -61,6 +85,20 @@ export const fetchTodoList = createAsyncThunk<Todo[], undefined, { rejectValue: 
       const filteredData = data.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
       const sortedData = filteredData.sort((a, b) => a.createdDate - b.createdDate);
       return sortedData;
+    } catch (error) {
+      return rejectWithValue("unknown error");
+    }
+  }
+);
+
+export const fetchOneTodo = createAsyncThunk<Todo | null, string, { rejectValue: string }>(
+  "todos/fetchOneTodo",
+  async (id, { rejectWithValue }) => {
+    try {
+      const docItem = doc(todos, id);
+      const data = await getDoc(docItem);
+      const result = data.data();
+      return result ? { ...result, id: data.id } : null;
     } catch (error) {
       return rejectWithValue("unknown error");
     }
@@ -98,31 +136,24 @@ export const deleteTodo = createAsyncThunk<void, string, { rejectValue: string }
   }
 );
 
-export const updateStatus = createAsyncThunk<void, Todo, { rejectValue: string }>(
-  "todos/updateStatus",
+type PatchTodoArgs = Omit<Partial<Todo>, "id"> & Pick<Todo, "id">;
+
+export const patchTodo = createAsyncThunk<void, PatchTodoArgs, { rejectValue: string }>(
+  "todos/patchTodo",
   async (item, { rejectWithValue }) => {
     try {
       const itemDoc = doc(db, "todos", item.id);
-      await updateDoc(itemDoc, { isDone: !item.isDone, finishedDate: Date.now() });
+      await updateDoc(itemDoc, item);
+      console.log("patch");
     } catch (error) {
+      console.log(error);
       return rejectWithValue("unknown error");
     }
   }
 );
 
-export const updateDueDate = createAsyncThunk<
-  void,
-  { id: string; newDueDate: string },
-  { rejectValue: string }
->("todos/updateDueDate", async (id, newDueDate, { rejectWithValue }) => {
-  try {
-    const itemDoc = doc(db, "todos", id);
-    await updateDoc(itemDoc, { dueDate: newDueDate });
-  } catch (error) {
-    return rejectWithValue("unknown error");
-  }
-});
-
 const selfSelector = (state: RootState) => state.todos;
 export const fetchTodoListSelector = createSelector(selfSelector, (state) => state.fetchTodoList);
+export const fetchOneTodoSelector = createSelector(selfSelector, (state) => state.fetchOneTodo);
+
 export default todosSlice.reducer;

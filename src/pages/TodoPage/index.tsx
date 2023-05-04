@@ -1,83 +1,59 @@
 import { useEffect, useState } from "react";
-import TodoItem from "../../components/TodoItem";
-import { useThunkDispatch } from "../../core/store/store";
-import { fetchTodoList, fetchTodoListSelector, addTodo } from "../../core/store/todoSlice";
 import { useSelector } from "react-redux";
-import { Button, Input, Text, Box } from "@chakra-ui/react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useThunkDispatch } from "../../core/store/store";
+import { fetchOneTodo, fetchOneTodoSelector, patchTodo } from "../../core/store/todoSlice";
+import { Box, Input, Text, Button } from "@chakra-ui/react";
 import { StatusOfRequestEnum } from "../../core/types/StatusOfRequestEnum";
+import moment from "moment";
 
 const TodoPage = () => {
+  const navigate = useNavigate();
   const dispatch = useThunkDispatch();
+  const { todoId } = useParams();
+  const { data: todo, status, error } = useSelector(fetchOneTodoSelector);
+
   const [newTodoTitle, setNewTodoTitle] = useState("");
   const [newTodoDate, setNewTodoDate] = useState("");
-  const { data: todos, status, error } = useSelector(fetchTodoListSelector);
 
   useEffect(() => {
-    dispatch(fetchTodoList());
+    if (todoId) {
+      dispatch(fetchOneTodo(todoId));
+    }
   }, []);
 
-  const onAdd = () => {
-    if (newTodoTitle && newTodoDate) {
-      const newTodo = { title: newTodoTitle, dueDate: newTodoDate };
-      dispatch(addTodo(newTodo));
-      dispatch(fetchTodoList());
-      setNewTodoTitle("");
-      setNewTodoDate("");
+  useEffect(() => {
+    if (todo && status === StatusOfRequestEnum.SUCCESS) {
+      setNewTodoDate(todo.dueDate);
+      setNewTodoTitle(todo.title);
+    }
+  }, [status]);
+
+  const onUpdate = () => {
+    if (todo && newTodoTitle && newTodoDate) {
+      console.log(`upd btn`);
+      dispatch(patchTodo({ id: todo.id, dueDate: newTodoDate, title: newTodoTitle }));
     }
   };
 
   return (
-    <Box display="flex" alignItems="center" flexDirection="column" paddingTop="30px">
-      <Box
-        width="500px"
-        borderWidth="1px"
-        borderRadius="lg"
-        display="flex"
-        alignItems="center"
-        flexDirection="column"
-      >
-        <Text fontSize="3xl" as="b" paddingBottom="20px" paddingTop="30px">
-          ToDo List
-        </Text>
-        <Box paddingBottom="20px">
-          {todos.map((item) => (
-            <div key={item.id}>{<TodoItem item={item} />}</div>
-          ))}
-        </Box>
-
-        <Box
-          display="flex"
-          flexDirection="column"
-          gap="10px"
-          alignItems="center"
-          paddingBottom="40px"
-          width="300px"
-        >
-          <Input
-            size="sm"
-            width="300px"
-            value={newTodoTitle}
-            placeholder="New task..."
-            onChange={(e) => setNewTodoTitle(e.target.value)}
-          />
+    <Box>
+      <Text as="b">Change todo</Text>
+      {todo && (
+        <>
+          <Input value={newTodoTitle} onChange={(e) => setNewTodoTitle(e.target.value)} />
           <Input
             placeholder="Select Date and Time"
             size="sm"
             type="datetime-local"
-            value={newTodoDate}
+            value={moment(newTodoDate).format("YYYY-MM-DDThh:mm")}
             onChange={(e) => setNewTodoDate(e.target.value)}
           />
-          <Button
-            isLoading={status === StatusOfRequestEnum.LOADING ? true : false}
-            width="100px"
-            onClick={onAdd}
-            colorScheme="teal"
-            size="sm"
-          >
-            Add
+          <Button width="100px" onClick={onUpdate} colorScheme="teal" size="sm">
+            Update
           </Button>
-        </Box>
-      </Box>
+        </>
+      )}
     </Box>
   );
 };

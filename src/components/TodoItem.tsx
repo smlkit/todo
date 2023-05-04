@@ -1,12 +1,14 @@
 import { FC } from "react";
+import { useNavigate } from "react-router-dom";
 import { useThunkDispatch } from "../core/store/store";
 import { Todo } from "../core/store/todoSlice";
-import { deleteTodo, fetchTodoList, updateStatus } from "../core/store/todoSlice";
+import { deleteTodo, fetchTodoList, patchTodo } from "../core/store/todoSlice";
 import { Checkbox, IconButton, Text, Box, Tooltip } from "@chakra-ui/react";
 import { DeleteIcon, SettingsIcon } from "@chakra-ui/icons";
 
 const TodoItem: FC<{ item: Todo }> = ({ item }) => {
   const dispatch = useThunkDispatch();
+  const navigate = useNavigate();
 
   const onDelete = (id: string) => {
     dispatch(deleteTodo(id));
@@ -14,7 +16,7 @@ const TodoItem: FC<{ item: Todo }> = ({ item }) => {
   };
 
   const onStatus = (item: Todo) => {
-    dispatch(updateStatus(item));
+    dispatch(patchTodo({ id: item.id, isDone: !item.isDone }));
     dispatch(fetchTodoList());
   };
 
@@ -22,7 +24,7 @@ const TodoItem: FC<{ item: Todo }> = ({ item }) => {
     <Box width="300px" display="flex" alignItems="center" justifyContent="space-between">
       <Box display="flex" alignItems="center" justifyContent="center" gap="10px">
         <Checkbox isChecked={item.isDone} onChange={() => onStatus(item)} colorScheme="teal" />
-        <Tooltip label={item.dueDate} placement="right" bg="grey">
+        <Tooltip label={item.dueDate.split("T")[0]} placement="right" bg="grey">
           <Text as="span">{item.title}</Text>
         </Tooltip>
       </Box>
@@ -45,6 +47,7 @@ const TodoItem: FC<{ item: Todo }> = ({ item }) => {
           variant="ghost"
           aria-label="change item"
           icon={<SettingsIcon />}
+          onClick={() => navigate(`/${item.id}`)}
         />
       </Box>
     </Box>
