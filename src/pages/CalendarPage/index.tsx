@@ -83,7 +83,7 @@ const CalendarPage = () => {
     };
   });
 
-  const [externalEventsState, setExternalEventsState] = useState(externalEvents);
+  const [externalEventsState, setExternalEventsState] = useState<typeof externalEvents>([]);
 
   const handleEventReceive = (event: any) => {
     const externalId = event.event._def.publicId;
@@ -101,6 +101,10 @@ const CalendarPage = () => {
   useEffect(() => {
     dispatch(fetchTodoList());
   }, [externalEventsState]);
+
+  useEffect(() => {
+    if (!externalEventsState.length && externalEvents.length) setExternalEventsState(externalEvents);
+  }, [externalEvents]);
 
   const onDrag = (info: EventDropArg) => {
     const event = {
