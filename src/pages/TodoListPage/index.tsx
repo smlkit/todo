@@ -72,6 +72,7 @@ const TodoPage = () => {
             width="100px"
             onClick={onAdd}
             size="sm"
+            colorScheme="teal"
           >
             Add
           </Button>

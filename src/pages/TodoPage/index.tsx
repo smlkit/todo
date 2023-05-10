@@ -7,7 +7,6 @@ import { Box, Input, Text, Button } from "@chakra-ui/react";
 import { StatusOfRequestEnum } from "../../core/types/StatusOfRequestEnum";
 import moment from "moment";
 import { Wrapper } from "../../styles/styledComponents/Wrapper";
-import { Container } from "../../styles/styledComponents/Container";
 
 const TodoPage = () => {
   const navigate = useNavigate();

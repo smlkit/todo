@@ -143,9 +143,9 @@ export const patchTodo = createAsyncThunk<void, PatchTodoArgs, { rejectValue: st
   async (item, { rejectWithValue }) => {
     try {
       const itemDoc = doc(db, "todos", item.id);
+
       await updateDoc(itemDoc, item);
     } catch (error) {
-      console.log(error);
       return rejectWithValue("unknown error");
     }
   }
