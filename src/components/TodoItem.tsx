@@ -24,7 +24,8 @@ const TodoItem: FC<{ item: Todo }> = ({ item }) => {
     <Box width="300px" display="flex" alignItems="center" justifyContent="space-between">
       <Box display="flex" alignItems="center" justifyContent="center" gap="10px">
         <Checkbox isChecked={item.isDone} onChange={() => onStatus(item)} colorScheme="teal" />
-        <Tooltip label={item.dueDate.split("T")[0]} placement="right" bg="grey">
+
+        <Tooltip label={item.dueDate ? item.dueDate.split("T")[0] : ""} placement="right" bg="grey">
           <Text as="span">{item.title}</Text>
         </Tooltip>
       </Box>

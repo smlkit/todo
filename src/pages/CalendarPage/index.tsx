@@ -12,7 +12,7 @@ import {
   EventInput,
 } from "@fullcalendar/core/index.js";
 import interactionPlugin, { Draggable, EventReceiveArg } from "@fullcalendar/interaction";
-import { Text, Box, Flex } from "@chakra-ui/react";
+import { Text, Box, Flex, Center } from "@chakra-ui/react";
 import { Wrapper } from "../../styles/styledComponents/Wrapper";
 import { Container } from "../../styles/styledComponents/Container";
 import moment from "moment";
@@ -28,21 +28,32 @@ const renderFunc: CustomContentGenerator<EventContentArg> = function (eventInfo)
   );
 };
 
-const ExternalEvent: FC<{ event: Todo }> = ({ event }) => {
+const ExternalEvent: FC<{ event: any }> = ({ event }) => {
   let elRef = useRef(null);
 
   useEffect(() => {
-    let draggable = new Draggable(elRef.current, {
-      eventData: function () {
-        return { ...event, create: true };
-      },
-    });
+    if (elRef.current) {
+      let draggable = new Draggable(elRef.current, {
+        eventData: function () {
+          return { ...event, create: true };
+        },
+      });
 
-    return () => draggable.destroy();
+      return () => draggable.destroy();
+    }
   });
 
   return (
-    <Box ref={elRef} bg="teal" color="white" w="100px" padding={1.5} borderRadius={7} cursor="pointer">
+    <Box
+      ref={elRef}
+      bg="teal"
+      color="white"
+      w="100px"
+      padding={1.5}
+      borderRadius={7}
+      cursor="pointer"
+      textAlign="center"
+    >
       <strong>{event.title}</strong>
     </Box>
   );
