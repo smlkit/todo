@@ -53,6 +53,7 @@ const TodoDetailsForm: FC<{ todo: Todo }> = ({ todo }) => {
               className={errors.title && touched.title ? "input-error" : ""}
               mb={5}
             />
+
             <Input
               id="date"
               value={values.date}
