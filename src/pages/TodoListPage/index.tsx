@@ -1,30 +1,33 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import TodoItem from "../../components/TodoItem";
 import { useThunkDispatch } from "../../core/store/store";
 import { fetchTodoList, fetchTodoListSelector, addTodo } from "../../core/store/todoSlice";
 import { useSelector } from "react-redux";
 import { Button, Input, Text, Box } from "@chakra-ui/react";
-import { StatusOfRequestEnum } from "../../core/types/StatusOfRequestEnum";
+import { useFormik } from "formik";
+import { todoSchema } from "../../config/schemas";
 
 const TodoPage = () => {
   const dispatch = useThunkDispatch();
-  const [newTodoTitle, setNewTodoTitle] = useState("");
-  const [newTodoDate, setNewTodoDate] = useState("");
-  const { data: todos, status, error } = useSelector(fetchTodoListSelector);
+  const { data: todos } = useSelector(fetchTodoListSelector);
+
+  const { values, errors, touched, handleChange, handleBlur, handleSubmit } = useFormik({
+    initialValues: {
+      title: "",
+      date: "",
+    },
+    validationSchema: todoSchema,
+    onSubmit: (values, actions) => {
+      const newTodo = { title: values.title, dueDate: values.date };
+      dispatch(addTodo(newTodo));
+      dispatch(fetchTodoList());
+      actions.resetForm();
+    },
+  });
 
   useEffect(() => {
     dispatch(fetchTodoList());
   }, []);
-
-  const onAdd = () => {
-    if (newTodoTitle) {
-      const newTodo = { title: newTodoTitle, dueDate: newTodoDate };
-      dispatch(addTodo(newTodo));
-      dispatch(fetchTodoList());
-      setNewTodoTitle("");
-      setNewTodoDate("");
-    }
-  };
 
   return (
     <Box display="flex" alignItems="center" flexDirection="column" paddingTop="30px">
@@ -45,38 +48,46 @@ const TodoPage = () => {
           ))}
         </Box>
 
-        <Box
-          display="flex"
-          flexDirection="column"
-          gap="10px"
-          alignItems="center"
-          paddingBottom="40px"
-          width="300px"
-        >
-          <Input
-            size="sm"
+        <form onSubmit={handleSubmit}>
+          <Box
+            display="flex"
+            flexDirection="column"
+            gap="10px"
+            alignItems="center"
+            paddingBottom="40px"
             width="300px"
-            value={newTodoTitle}
-            placeholder="New task..."
-            onChange={(e) => setNewTodoTitle(e.target.value)}
-          />
-          <Input
-            placeholder="Select Date and Time"
-            size="sm"
-            type="datetime-local"
-            value={newTodoDate}
-            onChange={(e) => setNewTodoDate(e.target.value)}
-          />
-          <Button
-            isLoading={status === StatusOfRequestEnum.LOADING ? true : false}
-            width="100px"
-            onClick={onAdd}
-            size="sm"
-            colorScheme="teal"
           >
-            Add
-          </Button>
-        </Box>
+            <Input
+              size="sm"
+              width="300px"
+              value={values.title}
+              placeholder="New task..."
+              id="title"
+              onChange={handleChange}
+              onBlur={handleBlur}
+              className={errors.title && touched.title ? "input-error" : ""}
+            />
+            {errors.title && touched.title && (
+              <Box textAlign="left" alignItems="left" width="100%">
+                <Text fontSize="xs" color="#fc8181">
+                  {errors.title}
+                </Text>
+              </Box>
+            )}
+            <Input
+              placeholder="Select Date and Time"
+              size="sm"
+              type="datetime-local"
+              value={values.date}
+              id="date"
+              onChange={handleChange}
+              onBlur={handleBlur}
+            />
+            <Button width="100px" size="sm" colorScheme="teal" type="submit">
+              Add
+            </Button>
+          </Box>
+        </form>
       </Box>
     </Box>
   );

@@ -62,7 +62,7 @@ const ExternalEvent: FC<{ event: any }> = ({ event }) => {
 const CalendarPage = () => {
   const navigate = useNavigate();
   const dispatch = useThunkDispatch();
-  const { withDate, withoutDate, status, error } = useSelector(filterTodosSelector);
+  const { withDate, withoutDate } = useSelector(filterTodosSelector);
 
   const events: EventInput[] = withDate.map((el) => {
     return {
@@ -79,9 +79,11 @@ const CalendarPage = () => {
       editable: !el.isDone,
       title: el.title,
       id: el.id,
-      backgroundColor: el.isDone ? "red" : "teal",
+      backgroundColor: el.isDone ? "darkgrey" : "teal",
     };
   });
+  console.log("with", withDate);
+  console.log("without", withoutDate);
 
   const [externalEventsState, setExternalEventsState] = useState<typeof externalEvents>([]);
 

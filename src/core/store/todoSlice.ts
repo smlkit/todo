@@ -2,8 +2,8 @@ import { createSlice, createAsyncThunk, createSelector } from "@reduxjs/toolkit"
 import type { RootState } from "./store";
 import { StatusOfRequestEnum } from "../types/StatusOfRequestEnum";
 import { doc, getDocs, getDoc, addDoc, deleteDoc, updateDoc } from "firebase/firestore";
-import { todos } from "../../config/firebase";
-import { db } from "../../config/firebase";
+import { todos } from "../../config/db/firebase";
+import { db } from "../../config/db/firebase";
 
 export interface Todo {
   title: string;
@@ -43,7 +43,12 @@ const initialState: TodosSlice = {
 const todosSlice = createSlice({
   name: "todos",
   initialState,
-  reducers: {},
+  reducers: {
+    resetFields: (state) => {
+      state.fetchOneTodo.data = null;
+      state.fetchOneTodo.status = StatusOfRequestEnum.IDLE;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchTodoList.pending, (state) => {
@@ -151,6 +156,7 @@ export const patchTodo = createAsyncThunk<void, PatchTodoArgs, { rejectValue: st
   }
 );
 
+export const resetFields = todosSlice.actions.resetFields;
 const selfSelector = (state: RootState) => state.todos;
 export const fetchTodoListSelector = createSelector(selfSelector, (state) => state.fetchTodoList);
 export const fetchOneTodoSelector = createSelector(selfSelector, (state) => state.fetchOneTodo);

@@ -1,0 +1,8 @@
+input.input-error,
+select.input-eror {
+  border-color: #fc8181;
+}
+
+input.input-error::placeholder {
+  color: #fc8181;
+}

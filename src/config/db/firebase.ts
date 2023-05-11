@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore, CollectionReference, collection, DocumentData } from "firebase/firestore";
-import { Todo } from "../core/store/todoSlice";
+import { Todo } from "../../core/store/todoSlice";
 
 const API_KEY = import.meta.env.VITE_API_KEY;
 const AUTH_DOMAIN = import.meta.env.VITE_AUTH_DOMAIN;
