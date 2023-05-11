@@ -7,7 +7,6 @@ import { Box, Input, Text, Button } from "@chakra-ui/react";
 import moment from "moment";
 
 const TodoDetailsForm: FC<{ todo: Todo }> = ({ todo }) => {
-  console.log("todo date", todo.dueDate);
   const dispatch = useThunkDispatch();
   const { values, errors, touched, handleChange, handleBlur, handleSubmit } = useFormik({
     initialValues: {
@@ -17,7 +16,6 @@ const TodoDetailsForm: FC<{ todo: Todo }> = ({ todo }) => {
     validationSchema: todoSchema,
     onSubmit: (values, actions) => {
       if (todo) {
-        console.log("formik date", values.date);
         dispatch(patchTodo({ id: todo.id, dueDate: values.date, title: values.title }));
       }
     },

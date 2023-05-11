@@ -26,7 +26,9 @@ const TodoItem: FC<{ item: Todo }> = ({ item }) => {
         <Checkbox isChecked={item.isDone} onChange={() => onStatus(item)} colorScheme="teal" />
 
         <Tooltip label={item.dueDate ? item.dueDate.split("T")[0] : ""} placement="right" bg="grey">
-          <Text as="span">{item.title}</Text>
+          <Text as="span" overflow="hidden" textOverflow="hidden" maxWidth="200px" height="20px">
+            {item.title}
+          </Text>
         </Tooltip>
       </Box>
       <Box>
